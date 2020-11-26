@@ -3,13 +3,27 @@
 
 _SETUP_PY_TEMPLATE = """from setuptools import setup
 
+version = "{version}"
+version_file = "{version_file}"
+
+def get_version(version, version_file):
+    if version_file != "":
+        return read_version(version_file)
+    else:
+        return version
+
+
+def read_version(rel_path):
+    with open(rel_path) as f:
+        return f.read()
+
 def readme():
     with open("{long_description}") as f:
         return f.read()
 
 setup(
     name = "{name}",
-    version = "{version}",
+    version = get_version(version, version_file),
     description = "{description}",
     long_description = readme(),
     classifiers = [{classifiers}],
@@ -83,8 +97,8 @@ python setup.py bdist_wheel
 twine upload dist/* -u $$user -p $$pass
 """
 
-def pypi_package(name, version, description, long_description, classifiers, keywords, url,
-                 author, author_email, license, packages, install_requires = [],
+def pypi_package(name, description, long_description, classifiers, keywords, url,
+                 author, author_email, license, packages, version = "", version_file = "", install_requires = [],
                  test_suite = "nose.collector", tests_require = ["nose"],
 		 visibility=["//visibility:public"]):
     """A `pypi_package` is a python package and modulates interaction with the PyPi repository.
@@ -130,6 +144,7 @@ def pypi_package(name, version, description, long_description, classifiers, keyw
     setup_py = _SETUP_PY_TEMPLATE.format(
         name = short_name,
         version = version,
+	version_file = version_file,
         description = description,
         long_description=long_description,
         classifiers = ', '.join(['"%s"' % c for c in classifiers]),
